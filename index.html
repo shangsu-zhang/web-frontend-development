@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <!-- 页面基础信息功能注释开始 -->
+  <!--
+    页面名称：停车场管理控制台
+    对应数据表：administrator、vehicle_owner、parking_space、vehicle、charge_rule、rental_contract、parking_record、payment_record
+    当前用途：停车场八表管理、业务操作与查询统计；本地模拟运行，预留 Java REST 服务。
+    作者：待填写实际提交者姓名与学号，不以演示管理员代替作者。
+    完成日期：2026-10-22
+  -->
+  <!-- 页面基础信息功能注释结束 -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="停车场管理数据库项目的前端运营总览">
+  <title>停车场管理控制台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 应用外壳功能注释开始 -->
+  <div class="app-shell">
+    <aside class="sidebar" id="main-sidebar" aria-label="主导航">
+      <div class="brand-block">
+        <div class="brand-mark" aria-hidden="true">P</div>
+        <div>
+          <p class="brand-name">ParkPilot</p>
+          <p class="brand-caption">停车场运营中心</p>
+        </div>
+      </div>
+
+      <nav class="primary-nav">
+        <p class="nav-label">工作台</p>
+        <a class="nav-item is-active" href="#overview" data-view="overview"><span class="nav-icon">⌂</span><span>运营总览</span></a>
+        <a class="nav-item" href="#parking-records" data-view="parking-records"><span class="nav-icon">↔</span><span>进出场记录</span></a>
+        <a class="nav-item" href="#payments" data-view="payments"><span class="nav-icon">¥</span><span>缴费记录</span></a>
+        <a class="nav-item" href="#reports" data-view="reports"><span class="nav-icon" aria-hidden="true">▥</span><span>查询统计</span></a>
+        <p class="nav-label nav-label-spaced">基础资料</p>
+        <a class="nav-item" href="#vehicles" data-view="vehicles"><span class="nav-icon">▣</span><span>车辆档案</span></a>
+        <a class="nav-item" href="#owners" data-view="owners"><span class="nav-icon">♙</span><span>车主档案</span></a>
+        <a class="nav-item" href="#spaces" data-view="spaces"><span class="nav-icon">▤</span><span>车位管理</span></a>
+        <a class="nav-item" href="#charge-rules" data-view="charge-rules"><span class="nav-icon">￥</span><span>收费规则</span></a>
+        <a class="nav-item" href="#contracts" data-view="contracts"><span class="nav-icon">□</span><span>月租合同</span></a>
+        <a class="nav-item" href="#administrators" data-view="administrators"><span class="nav-icon">♙</span><span>管理员</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status"><span class="status-dot"></span><span id="service-label">本地模拟服务</span></div>
+        <p id="storage-label">正在读取保存状态</p>
+        <button class="sidebar-reset" type="button" data-action="reset-demo">重置演示数据</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" type="button" aria-label="打开导航" aria-expanded="false" aria-controls="main-sidebar" data-action="toggle-menu">☰</button>
+        <div class="breadcrumb"><span>停车场管理</span><span class="breadcrumb-separator">/</span><strong id="page-title">运营总览</strong></div>
+        <div class="topbar-actions">
+          <span class="last-sync" id="last-sync">数据更新中</span>
+          <button class="icon-button" type="button" aria-label="刷新数据" data-action="refresh">↻</button>
+          <div class="user-chip"><span class="avatar" aria-hidden="true">P</span><span><strong>演示工作台</strong><small>前端模拟模式</small></span></div>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section class="view-panel is-visible" id="overview" data-panel="overview">
+          <div id="dashboard-error" class="notice notice-error" role="alert" hidden></div>
+          <!-- 总览标题功能注释开始 -->
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">运营概况 · 今日</p>
+              <h1>停车场运营总览</h1>
+              <p class="page-description">快速查看车位、在场车辆、月租合同与今日收款状态。</p>
+            </div>
+            <div class="heading-actions">
+              <button class="button button-secondary" type="button" data-action="export"><span>⇩</span>导出报表</button>
+              <button class="button button-primary" type="button" data-action="check-in"><span>＋</span>登记入场</button>
+            </div>
+          </div>
+          <!-- 总览标题功能注释结束 -->
+
+          <!-- 指标卡片功能注释开始 -->
+          <div class="metric-grid" id="metric-grid" aria-live="polite"></div>
+          <!-- 指标卡片功能注释结束 -->
+
+          <div class="content-grid">
+            <!-- 车位占用功能注释开始 -->
+            <section class="panel occupancy-panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">parking_space</p><h2>车位占用情况</h2></div>
+                <button class="text-button" type="button" data-view-link="spaces">查看全部 <span>→</span></button>
+              </div>
+              <div class="occupancy-summary"><strong id="occupancy-percent">--</strong><span>当前占用率</span><span class="trend positive" id="occupancy-trend">--</span></div>
+              <div class="progress-track"><div class="progress-fill" id="occupancy-progress"></div></div>
+              <div class="space-legend" id="space-legend"></div>
+              <div class="space-map" id="space-map" aria-label="车位分布图"></div>
+            </section>
+            <!-- 车位占用功能注释结束 -->
+
+            <!-- 在场车辆功能注释开始 -->
+            <section class="panel arrivals-panel">
+              <div class="panel-heading"><div><p class="eyebrow">parking_record</p><h2>当前在场车辆</h2></div><button class="text-button" type="button" data-view-link="parking-records">查看全部 <span>→</span></button></div>
+              <div class="table-wrap"><table><thead><tr><th>车牌号</th><th>车位</th><th>入场时间</th><th>类型</th></tr></thead><tbody id="arrivals-table"></tbody></table></div>
+            </section>
+            <!-- 在场车辆功能注释结束 -->
+          </div>
+
+          <div class="content-grid lower-grid">
+            <!-- 收款趋势功能注释开始 -->
+            <section class="panel revenue-panel">
+              <div class="panel-heading"><div><p class="eyebrow">payment_record</p><h2>近 7 日收款趋势</h2></div><span class="panel-meta" id="revenue-total">--</span></div>
+              <div class="chart-area" id="revenue-chart" role="img" aria-label="近七日收款趋势图"></div>
+              <div class="chart-labels" id="revenue-labels"></div>
+              <details class="chart-data"><summary>查看收款数据</summary><div id="revenue-data"></div></details>
+            </section>
+            <!-- 收款趋势功能注释结束 -->
+
+            <!-- 合同提醒功能注释开始 -->
+            <section class="panel contracts-panel">
+              <div class="panel-heading"><div><p class="eyebrow">rental_contract</p><h2>合同到期提醒</h2></div><button class="text-button" type="button" data-view-link="contracts">查看全部 <span>→</span></button></div>
+              <div class="contract-list" id="contract-list"></div>
+            </section>
+            <!-- 合同提醒功能注释结束 -->
+          </div>
+        </section>
+
+        <!-- 八表业务页面挂载功能注释开始：由独立普通脚本渲染表格和表单，无需网络加载片段 -->
+        <section class="view-panel" id="parking-records" data-panel="parking-records" aria-label="进出场记录"></section>
+        <section class="view-panel" id="payments" data-panel="payments" aria-label="缴费记录"></section>
+        <section class="view-panel" id="vehicles" data-panel="vehicles" aria-label="车辆档案"></section>
+        <section class="view-panel" id="owners" data-panel="owners" aria-label="车主档案"></section>
+        <section class="view-panel" id="spaces" data-panel="spaces" aria-label="车位管理"></section>
+        <section class="view-panel" id="charge-rules" data-panel="charge-rules" aria-label="收费规则"></section>
+        <section class="view-panel" id="contracts" data-panel="contracts" aria-label="月租合同"></section>
+        <section class="view-panel" id="administrators" data-panel="administrators" aria-label="管理员"></section>
+        <section class="view-panel" id="reports" data-panel="reports" aria-label="查询统计"></section>
+        <!-- 八表业务页面挂载功能注释结束 -->
+      </div>
+    </main>
+  </div>
+  <!-- 应用外壳功能注释结束 -->
+
+  <!-- 通知区域功能注释开始 -->
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <!-- 通知区域功能注释结束 -->
+  <!-- 普通脚本按依赖加载功能注释开始：可直接双击本文件，mock 模式不发网络请求 -->
+  <script src="js/config.js"></script>
+  <script src="js/mock-data.js"></script>
+  <script src="js/services/api-client.js"></script>
+  <script src="js/services/parking-service.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/pages/catalog.js"></script>
+  <script src="js/pages/operations.js"></script>
+  <script src="js/pages/reports.js"></script>
+  <script src="js/main.js"></script>
+  <!-- 普通脚本按依赖加载功能注释结束 -->
+</body>
+</html>
