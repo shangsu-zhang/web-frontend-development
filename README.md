@@ -4,13 +4,7 @@
 
 ## 运行
 
-优先直接打开 `index.html`，不需要 npm、构建过程、数据库或后端。若希望使用本地 HTTP 预览，在项目目录运行：
-
-```powershell
-python -m http.server 4173
-```
-
-然后访问 `http://localhost:4173`。HTTP 预览是可选方式，页面静态资源不需要网络。
+直接打开 `index.html` 即可运行，不需要 Python、npm、构建过程、数据库或后端。页面使用相对路径加载本地 CSS 和普通 JavaScript，静态资源不需要网络。
 
 ## 数据与服务
 

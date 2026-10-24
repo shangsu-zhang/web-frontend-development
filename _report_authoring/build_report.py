@@ -207,17 +207,22 @@ def draw_tree_image():
     font = load_font(23)
     rows = [
         (0, "Web前端开发/"),
-        (1, "index.html  |  css/style.css"),
+        (1, "index.html"),
+        (1, "css/  style.css"),
         (1, "js/"), (2, "main.js  ui.js  config.js  mock-data.js"),
-        (2, "services/  API 与模拟服务适配"),
-        (2, "pages/  基础资料、运营、统计页面逻辑"),
-        (1, "docs/  Java API、学习基线、页面截图"),
-        (2, "screenshots/  运营页与 11 项查询截图"),
-        (1, "tests/service.test.cjs  |  README.md  |  AGENTS.md"),
+        (2, "services/"),
+        (3, "api-client.js  index.js  mock-service.js  parking-service.js"),
+        (2, "pages/  catalog.js  operations.js  reports.js"),
+        (1, "assets/  本地资源目录"),
+        (1, "docs/"),
+        (2, "java-api.md  learning-baseline.md"),
+        (2, "screenshots/  页面与 11 项查询截图"),
+        (1, "tests/  service.test.cjs"),
+        (1, "README.md  |  AGENTS.md"),
     ]
-    image = Image.new("RGB", (1500, 500), "white")
+    image = Image.new("RGB", (1500, 650), "white")
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((24, 24, 1476, 476), radius=6, fill="#fbfcfd", outline="#b9c5cc", width=2)
+    draw.rounded_rectangle((24, 24, 1476, 626), radius=6, fill="#fbfcfd", outline="#b9c5cc", width=2)
     draw.text((65, 48), "停车场管理前端项目目录", font=load_font(30, True), fill="#162430")
     yy = 112
     for depth, label in rows:
@@ -371,6 +376,48 @@ def set_update_fields(document):
     update.set(qn("w:val"), "true")
 
 
+def add_toc_field(document):
+    paragraph = document.add_paragraph()
+    paragraph.paragraph_format.space_before = Pt(4)
+    paragraph.paragraph_format.space_after = Pt(0)
+    paragraph.paragraph_format.line_spacing = 1.2
+
+    begin_run = paragraph.add_run()
+    begin = OxmlElement("w:fldChar")
+    begin.set(qn("w:fldCharType"), "begin")
+    begin_run._r.append(begin)
+
+    instruction_run = paragraph.add_run()
+    instruction = OxmlElement("w:instrText")
+    instruction.set(qn("xml:space"), "preserve")
+    instruction.text = ' TOC \\o "1-2" \\h \\z \\u '
+    instruction_run._r.append(instruction)
+
+    separate_run = paragraph.add_run()
+    separate = OxmlElement("w:fldChar")
+    separate.set(qn("w:fldCharType"), "separate")
+    separate_run._r.append(separate)
+
+    result_run = paragraph.add_run(
+        "一、项目概述 ................................ 3\n"
+        "二、数据库表结构 .......................... 4\n"
+        "三、页面设计与实现 ........................ 12\n"
+        "四、页面与数据表的对应关系 ................ 22\n"
+        "五、代码规范与文件结构说明 ................ 24\n"
+        "六、AI 工具交流记录（加分项） ............. 25\n"
+        "七、项目总结 ................................ 26"
+    )
+    result_run.font.name = "宋体"
+    result_run._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "宋体")
+    result_run.font.size = Pt(11)
+
+    end_run = paragraph.add_run()
+    end = OxmlElement("w:fldChar")
+    end.set(qn("w:fldCharType"), "end")
+    end_run._r.append(end)
+    return paragraph
+
+
 def build_report(sections, schema_images, tree_image):
     document = Document(str(TEMPLATE))
     body = document._element.body
@@ -399,18 +446,7 @@ def build_report(sections, schema_images, tree_image):
     update_cover_table(document)
 
     add_heading(document, "目  录", 1)
-    contents = [
-        "一、项目概述：项目背景、功能简介与任务分配",
-        "二、数据库表结构：八张表字段、类型、约束及主外键",
-        "三、页面设计与实现：十个前端页面及对应截图",
-        "四、页面与数据表的对应关系",
-        "五、代码规范与文件结构说明",
-        "六、AI 工具交流记录（选做加分项）",
-        "七、项目总结",
-    ]
-    for item in contents:
-        add_text(document, item, size=12, after=8)
-    add_text(document, "目录页码可在 Word 中打开后，通过“引用 → 目录”插入自动目录并更新。", size=9, after=0)
+    add_toc_field(document)
 
     document.add_page_break()
     add_heading(document, "一、项目概述", 1)
@@ -427,7 +463,7 @@ def build_report(sections, schema_images, tree_image):
 
     document.add_page_break()
     add_heading(document, "二、数据库表结构", 1)
-    add_text(document, "以下八张表按数据库课程项目的建表 SQL 与字段设计说明整理。每张表先展示一幅结构整理图，再附可编辑字段明细表，便于按图核对并检索字段、类型、长度、约束、主外键和说明。结构图是依据项目文件整理的图示，并非 MySQL Workbench 或 Navicat 的运行截图；字段与约束以可执行 SQL 为准。", size=10)
+    add_text(document, "以下八张表按数据库课程项目的建表 SQL 与字段设计说明整理。每张表只保留一幅结构整理图，图中集中呈现字段、类型、长度、约束、主外键和说明，避免与可编辑字段表重复。结构图是依据项目文件整理的图示，并非 MySQL Workbench 或 Navicat 的运行截图；字段与约束以可执行 SQL 为准。", size=10)
     for index, (sql_name, cn_name) in enumerate(zip(TABLE_NAMES, TABLE_CN), 1):
         if index > 1:
             document.add_page_break()
@@ -436,10 +472,6 @@ def build_report(sections, schema_images, tree_image):
         add_text(document, f"本表共 {len(fields)} 个字段。主键、唯一键、外键及 CHECK 约束依照数据库定义整理。", size=9)
         add_caption(document, f"图 2-{index}  {cn_name}表结构整理图（依据 SQL 与字段设计说明）")
         add_page_image(document, ASSETS / f"schema-{index:02d}-{sql_name}.png", max_width=5.0)
-        add_caption(document, f"表 2-{index}  {cn_name}表字段明细")
-        add_docx_table(document,
-            ["字段名", "类型", "长度", "约束", "主键 / 外键", "说明"],
-            schema_images[sql_name], [1.10, 0.70, 0.42, 1.70, 1.20, 0.88], font_size=7)
 
     document.add_page_break()
     add_heading(document, "三、页面设计与实现", 1)
@@ -474,7 +506,7 @@ def build_report(sections, schema_images, tree_image):
     document.add_page_break()
     add_heading(document, "五、代码规范与文件结构说明", 1)
     add_heading(document, "5.1 项目文件结构", 2)
-    add_text(document, "项目用 index.html 组织导航、总览和视图容器；css/style.css 保存统一样式；js/main.js 负责初始化，js/pages/ 按页面分组实现交互，js/services/ 封装数据读写与 Java API 适配，js/mock-data.js 提供可重置的演示数据。docs/ 保存接口约定、课堂知识映射及页面截图，tests/ 保存 Node 内置测试。")
+    add_text(document, "项目用 index.html 组织导航、总览和视图容器；css/style.css 保存统一样式；js/main.js 负责初始化，js/pages/ 按页面分组实现交互，js/services/ 中的 parking-service.js 统一提供业务服务，mock-service.js 与 api-client.js 分别适配本地模拟数据和预留 Java REST 服务，js/mock-data.js 提供可重置的演示数据。assets/ 用于保存本地资源；docs/ 保存接口约定、课堂知识映射及页面截图，tests/ 保存 Node 内置测试。")
     add_text(document, "变量和函数使用有意义的英文名称，数据库标识保留 snake_case，中文仅用于界面说明。HTML、CSS、JavaScript 分文件维护；关键模块、页面区块及 JavaScript 函数使用详细中文成对功能注释，例如“功能注释开始 / 功能注释结束”。页面不直接改写存储数据，统一调用 parkingService；当前默认 mock 模式，切换到 Java 模式仅请求预留 REST 接口。")
     add_text(document, "本地运行：直接打开 index.html；测试命令：node --test tests\\service.test.cjs。服务层测试覆盖 CRUD 校验、计费、入场出场、收款退款、浏览器存储恢复及 Java 模式适配。")
     add_caption(document, "图 5-1  项目文件目录结构图")

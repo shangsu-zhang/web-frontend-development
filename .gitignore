@@ -1,0 +1,24 @@
+# 本地编辑器与系统临时文件
+~$*.docx
+.DS_Store
+Thumbs.db
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+
+# 报告渲染和临时输出
+_report_authoring/qa-*/
+_report_authoring/*-temp.docx
+_report_authoring/*.pdf
+
+# 本地环境与凭据
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+credentials.json
+secrets.json
+
